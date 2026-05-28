@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import entity.FileSystemEntity;
+import exception.EntityAlreadyExistsException;
 
 public class FileTrie {
 
@@ -21,7 +22,7 @@ public class FileTrie {
         }
         
         if(node.isEnd())
-            throw new RuntimeException("It already exists");
+            throw new EntityAlreadyExistsException(name);
 
         node.setEnd(true);
         node.setEntity(entity);

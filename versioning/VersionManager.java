@@ -2,6 +2,7 @@ package versioning;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import exception.VersionNotFoundException;
 
 public class VersionManager {
 
@@ -20,7 +21,7 @@ public class VersionManager {
 
     public FileState undo(FileState current) {
         if(!canUndo()) {
-            throw new RuntimeException("No states to undo");
+            throw new VersionNotFoundException("undo");
         }
 
         redo.push(current);
@@ -29,7 +30,7 @@ public class VersionManager {
 
     public FileState redo(FileState current) {
         if (!canRedo()) {
-            throw new RuntimeException("No states to redo");
+            throw new VersionNotFoundException("redo");
         }
 
         undo.push(current);

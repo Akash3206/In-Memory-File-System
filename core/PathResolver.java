@@ -3,6 +3,8 @@ package core;
 import java.util.ArrayList;
 import java.util.List;
 import entity.*;
+import exception.EntityNotFoundException;
+import exception.InvalidPathException;
 
 public class PathResolver {
 
@@ -12,22 +14,22 @@ public class PathResolver {
         int n = parts.size();
 
         if(n == 0)
-            throw new RuntimeException("Invalid Path");
+            throw new InvalidPathException(path);
 
         if(!parts.get(0).equals(root.getName()))
-            throw new RuntimeException("Invalid root path");
+            throw new InvalidPathException(path);
 
         FileSystemEntity current = root;
         for(int i = 1; i < n; i++) {
             if(!(current instanceof Directory))
-                throw new RuntimeException("Invalid path"); 
+                throw new EntityNotFoundException(current.getName()); 
 
             Directory currentDirectory = (Directory) current; 
 
             FileSystemEntity child = currentDirectory.getChild(parts.get(i));
 
             if(child == null)
-                throw new RuntimeException("Path does not exist");
+                throw new InvalidPathException(path);
 
             current = child;
         }
@@ -38,18 +40,18 @@ public class PathResolver {
         int ind = path.lastIndexOf("/");
 
         if(ind <= 0) 
-            throw new RuntimeException("Root has no parent");
+            throw new InvalidPathException(path);
 
         path = path.substring(0, ind);
 
         FileSystemEntity parent = resolve(root, path);
 
         if(!(parent instanceof Directory)) 
-            throw new RuntimeException("Parent is not a directory");
+            throw new EntityNotFoundException(parent.getName());
 
         return (Directory) parent;
     }
-    
+
     public static List<String> getPathParts(String path) {
         String[] strs = path.split("/");
 

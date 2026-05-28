@@ -1,173 +1,301 @@
-# In-Memory File System
+# In-Memory File System (Java)
 
-An object-oriented in-memory file system simulator built using Java to explore low-level system design concepts, data structures, and file organization techniques.
-
-## Features
-
-* Hierarchical directory and file management
-* Trie-based path traversal for efficient lookup
-* Core file operations:
-
-  * Create
-  * Read
-  * Write
-  * Delete
-  * Directory management
-* Recursive traversal for nested directories
-* Custom permission handling:
-
-  * Read
-  * Write
-  * Delete
-  * Execute
-* Exception-based access control
-* File versioning with rollback support
-* LRU caching for recently accessed file retrieval
-* Fully in-memory storage without disk persistence
+A modular and extensible in-memory file system built in Java using object-oriented design principles, Trie-based indexing, LRU caching, and stack-based versioning.
 
 ---
 
-## Tech Stack
+# Features
 
-* **Language:** Java
-* **Concepts Used:**
+## Core File System Operations
 
-  * Object-Oriented Programming (OOP)
-  * Data Structures & Algorithms
-  * Trie Data Structure
-  * LRU Cache
-  * Recursive Tree Traversal
-  * Version Control Logic
-  * Exception Handling
+* Create directories (`mkdir`)
+* Create files (`touch`)
+* Delete files/directories (`rm`)
+* Read file content (`cat`)
+* Write/update file content (`write`)
+* List directory contents (`ls`)
 
 ---
 
-## Project Structure
+## Trie-Based Directory Indexing
 
-filesystem/
+Each directory internally uses a custom Trie data structure for:
+
+* Fast child lookup
+* Prefix-based search
+* Efficient insertion/deletion
+
+### Supported Trie Operations
+
+* Insert entity
+* Search entity
+* Delete entity
+* Prefix search
+
+---
+
+## Stack-Based Versioning
+
+Files support:
+
+* Undo
+* Redo
+
+Implemented using:
+
+* Undo stack
+* Redo stack
+
+Every file write stores the previous file state automatically.
+
+---
+
+## LRU Cache Integration
+
+The filesystem integrates a custom Least Recently Used (LRU) cache to optimize:
+
+* Path resolution
+* Repeated file access
+
+### Cache Characteristics
+
+* O(1) get
+* O(1) put
+* O(1) eviction
+
+Implemented using:
+
+* HashMap
+* Doubly Linked List
+
+---
+
+# Architecture
+
+```text
+FileSystem
+│
+├── PathResolver
+├── LRUCache
+├── Directory
+│   └── FileTrie
+│       └── TrieNode
+│
+├── File
+│   └── VersionManager
+│       └── FileState
+│
+├── FileSystemFactory
+│
+└── Custom Exceptions
+```
+
+---
+
+# Project Structure
+
+```text
+src/
+│
+├── cache/
+│   ├── CacheNode.java
+│   └── LRUCache.java
 │
 ├── core/
 │   ├── FileSystem.java
-│   ├── FileSystemFactory.java
 │   └── PathResolver.java
 │
 ├── entity/
-│   ├── FileSystemEntity.java
 │   ├── Directory.java
-│   └── File.java
+│   ├── File.java
+│   └── FileSystemEntity.java
+│
+├── exception/
+│   ├── DuplicateEntityException.java
+│   ├── EntityNotFoundException.java
+│   ├── FileSystemException.java
+│   ├── InvalidDirectoryException.java
+│   ├── InvalidFileOperationException.java
+│   ├── InvalidPathException.java
+│   ├── PermissionDeniedException.java
+│   └── VersionNotFoundException.java
+│
+├── factory/
+│   └── FileSystemFactory.java
 │
 ├── permissions/
-│   ├── Permission.java
-│   └── AccessManager.java
+│   └── Permission.java
 │
-├── versioning/
-│   ├── FileState.java
-│   └── VersionManager.java
+├── trie/
+│   ├── FileTrie.java
+│   └── TrieNode.java
 │
-├── cache/
-│   └── LRUCache.java
-│
-└── Main.java
+└── versioning/
+    ├── FileState.java
+    └── VersionManager.java
 ```
 
 ---
 
-## System Design Overview
+# Design Patterns Used
 
-### Trie-Based File Organization
+## Singleton Pattern
 
-The file system uses a Trie-like hierarchical structure where:
+Used in:
 
-* Each directory acts as a node
-* Files and subdirectories are stored as children
-* Path traversal is optimized for nested lookup operations
+* `FileSystem`
 
-Example:
-
-```plaintext
-/root
-   ├── docs
-   │     └── notes.txt
-   └── images
-         └── photo.png
-```
+Ensures only one filesystem instance exists.
 
 ---
 
-## Core Functionalities
+## Factory Pattern
 
-### File Operations
+Used in:
 
-* Create files/directories
-* Read file contents
-* Update/write file contents
-* Delete files/directories
-* Navigate nested paths
+* `FileSystemFactory`
 
-### Permission Management
+Centralizes object creation for:
 
-Each file supports custom permissions:
-
-* READ
-* WRITE
-* DELETE
-* EXECUTE
-
-Unauthorized operations throw custom exceptions.
-
-### File Versioning
-
-Every modification creates a new file state snapshot.
-
-Supports:
-
-* Version history tracking
-* Rollback to previous versions
-
-### LRU Cache
-
-Recently accessed files are cached using an LRU eviction policy to improve retrieval efficiency.
+* Files
+* Directories
 
 ---
 
-## Example Usage
+## Composite Pattern
+
+Used in:
+
+* `FileSystemEntity`
+* `Directory`
+* `File`
+
+Allows files and directories to be treated uniformly.
+
+---
+
+# Time Complexities
+
+| Operation       | Complexity        |
+| --------------- | ----------------- |
+| Path Resolution | O(depth)          |
+| Trie Search     | O(length of name) |
+| Trie Insert     | O(length of name) |
+| Trie Delete     | O(length of name) |
+| LRU Get         | O(1)              |
+| LRU Put         | O(1)              |
+| Undo/Redo       | O(1)              |
+
+---
+
+# Sample Usage
 
 ```java
-FileSystem fs = FileSystemFactory.create();
+FileSystem fs = FileSystem.getInstance();
 
-fs.createDirectory("/docs");
-fs.createFile("/docs/notes.txt", "Hello World");
+Permission p = new Permission(
+    true,
+    true,
+    true,
+    true,
+    false
+);
 
-String content = fs.readFile("/docs/notes.txt");
+fs.mkdir("/root/docs", p);
 
-fs.writeFile("/docs/notes.txt", "Updated Content");
+fs.touch(
+    "/root/docs/a.txt",
+    p,
+    "hello",
+    "txt"
+);
 
-fs.rollback("/docs/notes.txt", 1);
+System.out.println(
+    fs.cat("/root/docs/a.txt")
+);
+
+fs.write(
+    "/root/docs/a.txt",
+    "hello world"
+);
+
+fs.undo("/root/docs/a.txt");
+
+System.out.println(
+    fs.cat("/root/docs/a.txt")
+);
+
+List<FileSystemEntity> files =
+    fs.ls("/root/docs");
 ```
 
 ---
 
-## Learning Outcomes
+# Custom Exceptions
 
-This project helped in understanding:
+The project uses a dedicated exception hierarchy for cleaner error handling.
 
-* Low-level system design principles
-* File system architecture
-* Efficient path resolution techniques
-* OOP design patterns
-* Cache eviction strategies
-* State/version management systems
+Examples:
+
+* InvalidPathException
+* PermissionDeniedException
+* DuplicateEntityException
+* EntityNotFoundException
+* VersionNotFoundException
 
 ---
 
-## Future Improvements
+# Current Capabilities
 
-* Persistent disk storage
-* Multi-user support
-* Concurrency handling
-* Command-line interface
+## Supported
+
+* Trie-backed directory hierarchy
+* Prefix-based file search
+* Undo/Redo versioning
+* LRU path caching
+* Recursive path traversal
+* Object-oriented modular architecture
+
+---
+
+# Planned Enhancements
+
+* Move/Rename operations
+* Recursive delete (`rm -r`)
+* Thread safety using locks
+* Persistent storage
 * File compression
-* Search indexing
+* Search filters
+* Access logs
+* Snapshot/version history
 * Symbolic links
+
+---
+
+# Key Learning Outcomes
+
+This project demonstrates:
+
+* Low-Level Design (LLD)
+* Data Structure Integration
+* Cache Design
+* Object-Oriented Programming
+* Design Patterns
+* File System Architecture
+* Recursive Traversal
+* Trie Applications
+* Stack-Based State Management
+
+---
+
+# Tech Stack
+
+* Java
+* OOP
+* Trie
+* HashMap
+* Doubly Linked List
+* Stack / Deque
+* Custom Exception Hierarchy
 
 ---

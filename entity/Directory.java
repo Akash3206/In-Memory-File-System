@@ -1,6 +1,9 @@
 package entity;
 
 import java.util.List;
+
+import exception.DuplicateEntityException;
+import exception.EntityNotFoundException;
 import permissions.Permission;
 import trie.FileTrie;
 
@@ -15,10 +18,10 @@ public class Directory extends FileSystemEntity {
 
     public void addChild(FileSystemEntity entity) {
         if(entity == null)
-            throw new RuntimeException("Entity cannot be null");
+            throw new EntityNotFoundException("null");
 
         if(children.exists(entity.getName())) {
-            throw new RuntimeException("Entity already exists");
+            throw new DuplicateEntityException(entity.getName());
         }
 
         entity.setParent(this);
@@ -29,7 +32,7 @@ public class Directory extends FileSystemEntity {
 
     public void removeChild(String name) {
         if(!exists(name))
-            throw new RuntimeException("Entity not found");
+            throw new EntityNotFoundException(name);
 
         FileSystemEntity child = children.search(name);
 
@@ -53,8 +56,4 @@ public class Directory extends FileSystemEntity {
     public List<FileSystemEntity> searchPrefix(String prefix) {
         return children.startsWith(prefix);
     }
-
-    // public int getSize() {
-    //     return 0;
-    // }
 }

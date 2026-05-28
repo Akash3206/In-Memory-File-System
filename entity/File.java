@@ -1,5 +1,6 @@
 package entity;
 
+import exception.InvalidFileOperationException;
 import permissions.Permission;
 import versioning.FileState;
 import versioning.VersionManager;
@@ -23,14 +24,14 @@ public class File extends FileSystemEntity {
 
     public String read() {
         if(!getPermission().canRead())
-            throw new RuntimeException("No permission to read this file");
+            throw new InvalidFileOperationException("read");
 
         return content;
     }
 
     public void write(String newContent) {
         if(!getPermission().canWrite())
-            throw new RuntimeException("Permission denined");
+            throw new InvalidFileOperationException("write");
 
         versionManager.save(new FileState(content));
         this.content = newContent;
